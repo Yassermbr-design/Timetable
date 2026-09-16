@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timetable — your day, spoken plainly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="board">
+  <div class="board-top">
+    <div class="logo-row">
+      <svg class="logo-mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logoGrad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#f2a93b"/>
+            <stop offset="1" stop-color="#4fc7bd"/>
+          </linearGradient>
+        </defs>
+        <rect x="1" y="6" width="38" height="33" rx="9" fill="url(#logoGrad)"/>
+        <rect x="1" y="6" width="38" height="10" rx="9" fill="#000000" opacity="0.12"/>
+        <circle cx="11" cy="4" r="3" fill="url(#logoGrad)"/>
+        <circle cx="29" cy="4" r="3" fill="url(#logoGrad)"/>
+        <circle cx="20" cy="24" r="8.5" fill="#10131a" opacity="0.92"/>
+        <line x1="20" y1="24" x2="20" y2="19" stroke="#f2a93b" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="20" y1="24" x2="23.2" y2="25.6" stroke="#4fc7bd" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <span class="logo-word">Timetable</span>
+    </div>
+    <div class="header-actions">
+      <div class="clock" id="clock"></div>
+      <button class="theme-toggle" id="searchOpenBtn" title="Search" aria-label="Search your schedule">🔍</button>
+      <button class="theme-toggle" id="themeToggle" title="Toggle light / dark" aria-label="Toggle light and dark mode">☾</button>
+    </div>
+  </div>
+
+  <div class="greeting-row">
+    <div class="greeting-block">
+      <h1 id="greetingText">Good morning 👋</h1>
+      <p id="dateLine"></p>
+    </div>
+    <div class="progress-card">
+      <div class="ring-wrap">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <circle cx="26" cy="26" r="21" fill="none" stroke="var(--line)" stroke-width="6"/>
+          <circle id="ringProgress" cx="26" cy="26" r="21" fill="none" stroke="var(--amber)" stroke-width="6"
+                  stroke-linecap="round" stroke-dasharray="131.9" stroke-dashoffset="131.9"/>
+        </svg>
+        <div class="ring-label" id="ringLabel">0/0</div>
+      </div>
+      <div class="progress-text">
+        <strong id="progressHeadline">Nothing planned yet</strong>
+        <span id="progressSub">Add or ask for something below</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="tabs-inner" role="tablist" aria-label="Views">
+    <button class="active" data-view="today" role="tab" aria-selected="true">Today</button>
+    <button data-view="week" role="tab" aria-selected="false">Week</button>
+    <button data-view="month" role="tab" aria-selected="false">Month</button>
+    <button data-view="year" role="tab" aria-selected="false">Year</button>
+    <button data-view="prefs" role="tab" aria-selected="false">Preferences</button>
+  </div>
+</nav>
+
+<main>
+
+  <!-- TODAY -->
+  <section class="view active" id="view-today">
+    <div id="nowNextHero"></div>
+    <div class="plan-day-row">
+      <button class="plan-day-btn" id="planDayBtn">✨ Plan my day</button>
+      <button class="ghost" id="dailySummaryBtn">📋 Daily summary</button>
+    </div>
+    <h2 class="section-title">Today's schedule</h2>
+    <div class="today-list" id="todayList"></div>
+  </section>
+
+  <!-- WEEK -->
+  <section class="view" id="view-week">
+    <div class="cal-nav">
+      <button class="ghost" id="weekPrev" aria-label="Previous week">‹</button>
+      <h2 class="cal-nav-title" id="weekTitle">This week</h2>
+      <button class="ghost" id="weekNext" aria-label="Next week">›</button>
+      <button class="ghost" id="weekToday" style="margin-left:auto;">Today</button>
+    </div>
+    <div class="plan-day-row">
+      <button class="plan-day-btn" id="planWeekBtn">✨ Plan my week</button>
+      <button class="ghost" id="weeklySummaryBtn">📊 Weekly stats</button>
+    </div>
+    <div class="week-timegrid" id="weekTimegrid"></div>
+  </section>
+
+  <!-- MONTH -->
+  <section class="view" id="view-month">
+    <div class="cal-nav">
+      <button class="ghost" id="monthPrev" aria-label="Previous month">‹</button>
+      <h2 class="cal-nav-title" id="monthTitle">August 2026</h2>
+      <button class="ghost" id="monthNext" aria-label="Next month">›</button>
+      <button class="ghost" id="monthToday" style="margin-left:auto;">Today</button>
+    </div>
+    <div class="month-weekdays" id="monthWeekdays"></div>
+    <div class="month-grid" id="monthGrid"></div>
+  </section>
+
+  <!-- YEAR -->
+  <section class="view" id="view-year">
+    <div class="cal-nav">
+      <button class="ghost" id="yearPrev" aria-label="Previous year">‹</button>
+      <h2 class="cal-nav-title" id="yearTitle">2026</h2>
+      <button class="ghost" id="yearNext" aria-label="Next year">›</button>
+    </div>
+    <div id="yearStats"></div>
+    <div class="year-grid" id="yearGrid"></div>
+  </section>
+
+  <!-- PREFERENCES -->
+  <section class="view" id="view-prefs">
+    <h2 class="section-title">Preferences</h2>
+
+    <h2 class="section-title" style="margin-top:8px;">Schedule</h2>
+    <div class="pref-card" style="margin-bottom:16px;">
+      <label>Sleep window</label>
+      <div class="field-row">
+        <div style="flex:1"><input type="time" id="sleepStart"></div>
+        <div style="flex:1"><input type="time" id="sleepEnd"></div>
+      </div>
+      <label>Working hours</label>
+      <div class="field-row">
+        <div style="flex:1"><input type="time" id="workStart"></div>
+        <div style="flex:1"><input type="time" id="workEnd"></div>
+      </div>
+      <label>Preferred exercise window</label>
+      <div class="field-row">
+        <div style="flex:1"><input type="time" id="exStart"></div>
+        <div style="flex:1"><input type="time" id="exEnd"></div>
+      </div>
+      <label>Week starts on</label>
+      <select id="weekStartSelect">
+        <option value="sunday">Sunday</option>
+        <option value="monday">Monday</option>
+      </select>
+    </div>
+
+    <h2 class="section-title" style="margin-top:28px;">Assistant</h2>
+    <div class="pref-card" style="margin-bottom:16px;">
+      <label style="margin-bottom:2px;">What the assistant is allowed to move automatically</label>
+      <div class="toggle-row">
+        <span>📚 Study sessions</span>
+        <label class="switch"><input type="checkbox" id="flexStudy" checked><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span>🏃 Exercise</span>
+        <label class="switch"><input type="checkbox" id="flexExercise" checked><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span>🛍️ Shopping / errands</span>
+        <label class="switch"><input type="checkbox" id="flexShopping" checked><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span>✨ Free / personal time</span>
+        <label class="switch"><input type="checkbox" id="flexFree" checked><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span>💼 Work meetings</span>
+        <label class="switch"><input type="checkbox" id="flexWork"><span class="slider"></span></label>
+      </div>
+    </div>
+    <div class="pref-card" style="margin-bottom:16px;">
+      <label style="margin-bottom:10px;">Start from a template</label>
+      <p style="font-size:12.5px;color:var(--ink-dim);margin:0 0 14px;">Seeds a few flexible sessions into the next 7 days — a starting point you can edit or delete freely.</p>
+      <div class="template-row">
+        <button class="ghost" data-template="sports">🏃 Sports calendar</button>
+        <button class="ghost" data-template="study">📚 Study calendar</button>
+        <button class="ghost" id="retakeSetupBtn">🔁 Retake setup quiz</button>
+      </div>
+    </div>
+
+    <h2 class="section-title" style="margin-top:28px;">Notifications</h2>
+    <div class="pref-card" style="margin-bottom:16px;">
+      <label style="margin-bottom:6px;">Reminders</label>
+      <p style="font-size:12.5px;color:var(--ink-dim);margin:0 0 12px;">Reminders fire as browser notifications while this tab is open. Without an installed background service, they can't wake up your device when the tab is closed.</p>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <button class="ghost" id="enableNotifsBtn">🔔 Enable browser notifications</button>
+        <span id="notifStatus" style="font-size:12px;color:var(--ink-dim);font-family:var(--mono);"></span>
+      </div>
+    </div>
+
+    <h2 class="section-title" style="margin-top:28px;">Appearance</h2>
+    <div class="pref-card" style="margin-bottom:16px;">
+      <div class="two-col">
+        <div class="field">
+          <label>Theme</label>
+          <select id="themeSelect">
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+            <option value="system">Match system</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Clock format</label>
+          <select id="clockFormatSelect">
+            <option value="12">12-hour (2:30 PM)</option>
+            <option value="24">24-hour (14:30)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title" style="margin-top:28px;">Data</h2>
+    <div class="pref-card" style="margin-bottom:16px;">
+      <label style="margin-bottom:6px;">Export schedule</label>
+      <p style="font-size:12.5px;color:var(--ink-dim);margin:0 0 12px;">Download your events in a format another app can use.</p>
+      <div class="template-row">
+        <button class="ghost" id="exportCsvBtn">⬇ CSV</button>
+        <button class="ghost" id="exportExcelBtn">⬇ Excel</button>
+        <button class="ghost" id="exportPdfBtn">⬇ PDF</button>
+        <button class="ghost" id="exportIcsBtn">⬇ ICS (calendar app)</button>
+      </div>
+    </div>
+    <div class="pref-card" style="margin-bottom:16px;">
+      <label style="margin-bottom:6px;">Full backup</label>
+      <p style="font-size:12.5px;color:var(--ink-dim);margin:0 0 12px;">Includes events, preferences, special days, subtasks, and recurrence rules — everything needed to fully restore your schedule on this or another device.</p>
+      <div class="template-row">
+        <button class="ghost" id="exportBackupBtn">⬇ Export my data</button>
+        <button class="ghost" id="importBackupBtn">⬆ Import backup</button>
+      </div>
+      <input type="file" id="backupFileInput" accept="application/json,.json" style="display:none;">
+    </div>
+    <div class="pref-card" style="margin-bottom:16px;border-color:color-mix(in srgb, var(--red) 35%, var(--line));">
+      <label style="margin-bottom:6px;color:var(--red);">Danger zone</label>
+      <p style="font-size:12.5px;color:var(--ink-dim);margin:0 0 12px;">These can't be undone from the app itself — export a backup first if you're not sure.</p>
+      <div class="template-row">
+        <button class="ghost" id="clearEventsBtnPrefs" style="border-color:var(--red);color:var(--red);">🧹 Clear events</button>
+        <button class="ghost" id="resetAppBtn" style="border-color:var(--red);color:var(--red);">⚠️ Reset application</button>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;display:flex;align-items:center;">
+      <button class="primary" id="savePrefs">Save preferences</button>
+      <span class="save-note" id="saveNote">Saved</span>
+    </div>
+  </section>
+
+</main>
+
+<button class="fab" id="addBtn" title="Add event manually" aria-label="Add event manually">+</button>
+
+<!-- Add / edit event modal -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" tabindex="-1">
+    <h3 id="modalTitle">New event</h3>
+    <div class="field">
+      <label>Title</label>
+      <input type="text" id="fTitle" placeholder="e.g. Team standup">
+    </div>
+
+    <div class="field">
+      <label>Date</label>
+      <div class="quick-row">
+        <button type="button" class="quick-chip" data-date-shortcut="today">Today</button>
+        <button type="button" class="quick-chip" data-date-shortcut="tomorrow">Tomorrow</button>
+        <input type="text" id="fDate" placeholder="YYYY-MM-DD" style="flex:1;min-width:120px;">
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="field">
+        <label>Start time</label>
+        <input type="time" id="fStart">
+      </div>
+      <div class="field">
+        <label>Duration</label>
+        <div class="quick-row">
+          <button type="button" class="quick-chip" data-duration="30">30m</button>
+          <button type="button" class="quick-chip" data-duration="60">1h</button>
+          <button type="button" class="quick-chip" data-duration="120">2h</button>
+        </div>
+        <input type="number" id="fDuration" min="5" step="5" value="30" style="margin-top:8px;">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Category</label>
+      <div class="quick-row" id="fCategoryChips">
+        <button type="button" class="quick-chip cat-chip" data-cat="Work">💼 Work</button>
+        <button type="button" class="quick-chip cat-chip" data-cat="Study">📚 Study</button>
+        <button type="button" class="quick-chip cat-chip" data-cat="Exercise">🏃 Exercise</button>
+        <button type="button" class="quick-chip cat-chip" data-cat="Shopping">🛍️ Shopping</button>
+        <button type="button" class="quick-chip cat-chip" data-cat="Free time">✨ Free time</button>
+        <button type="button" class="quick-chip cat-chip" data-cat="Other">• Other</button>
+      </div>
+      <select id="fCategory" style="display:none;">
+        <option>Work</option>
+        <option>Study</option>
+        <option>Exercise</option>
+        <option>Shopping</option>
+        <option>Free time</option>
+        <option>Other</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Repeats</label>
+      <select id="fRecurType">
+        <option value="none">Never</option>
+        <option value="daily">Daily</option>
+        <option value="weekdays">Every weekday (Mon–Fri)</option>
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+      </select>
+      <div class="quick-row" id="fRecurDaysRow" style="display:none;margin-top:8px;">
+        <button type="button" class="quick-chip recur-day-chip" data-day="0">Sun</button>
+        <button type="button" class="quick-chip recur-day-chip" data-day="1">Mon</button>
+        <button type="button" class="quick-chip recur-day-chip" data-day="2">Tue</button>
+        <button type="button" class="quick-chip recur-day-chip" data-day="3">Wed</button>
+        <button type="button" class="quick-chip recur-day-chip" data-day="4">Thu</button>
+        <button type="button" class="quick-chip recur-day-chip" data-day="5">Fri</button>
+        <button type="button" class="quick-chip recur-day-chip" data-day="6">Sat</button>
+      </div>
+    </div>
+
+    <details class="advanced-field">
+      <summary>Advanced — flexibility & reminder</summary>
+      <div class="field" style="margin-top:10px;">
+        <select id="fFlex">
+          <option value="flexible">Flexible — assistant can move it if needed</option>
+          <option value="fixed">Fixed — never move without asking</option>
+        </select>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label style="display:block;font-size:12px;color:var(--ink-dim);margin-bottom:5px;font-family:var(--mono);">Reminder</label>
+        <select id="fReminder">
+          <option value="none">None</option>
+          <option value="5">5 minutes before</option>
+          <option value="15">15 minutes before</option>
+          <option value="30">30 minutes before</option>
+          <option value="60">1 hour before</option>
+        </select>
+      </div>
+    </details>
+
+    <div class="actions">
+      <button class="ghost" id="cancelModal">Cancel</button>
+      <button class="primary" id="saveEvent">Save event</button>
+    </div>
+  </div>
+</div>
+
+<!-- Day detail / special-day modal -->
+<div class="modal-backdrop" id="dayModalBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dayModalTitle" tabindex="-1">
+    <h3 id="dayModalTitle">Day</h3>
+    <div class="day-events-list" id="dayEventsList"></div>
+    <button class="ghost" id="dayAddEventBtn" style="width:100%;margin-bottom:16px;">+ Add event this day</button>
+
+    <div id="specialExistingWrap"></div>
+    <div class="field">
+      <label>Mark as special day (birthday, anniversary…)</label>
+      <input type="text" id="specialTitle" placeholder="e.g. Mom's birthday">
+    </div>
+    <div class="two-col">
+      <div class="field">
+        <label>Type</label>
+        <select id="specialType">
+          <option>Birthday</option>
+          <option>Anniversary</option>
+          <option>Important</option>
+          <option>Holiday</option>
+        </select>
+      </div>
+      <div class="field" style="display:flex;align-items:flex-end;">
+        <label style="display:flex;align-items:center;gap:8px;margin:0;font-family:var(--sans);font-size:13px;color:var(--ink);">
+          <input type="checkbox" id="specialRecurring" style="width:auto;" checked> Repeats yearly
+        </label>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="ghost" id="closeDayModal">Close</button>
+      <button class="primary" id="saveSpecialDay">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Task detail modal — breakdown / subtasks -->
+<div class="modal-backdrop" id="taskModalBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle" tabindex="-1">
+    <div class="task-modal-head">
+      <div class="cat-icon" id="taskModalIcon"></div>
+      <h3 id="taskModalTitle">Task</h3>
+    </div>
+    <div class="task-modal-sub" id="taskModalSub"></div>
+
+    <div class="subtask-list" id="subtaskList"></div>
+
+    <div class="subtask-add-row">
+      <input type="text" id="subLabel" placeholder="e.g. Squats">
+      <input type="text" id="subDetail" placeholder="e.g. 4 sets × 10 reps, 90s rest">
+      <button class="primary" id="addSubtaskBtn">Add</button>
+    </div>
+
+    <div class="actions">
+      <button class="ghost" id="closeTaskModal">Close</button>
+      <button class="ghost" id="deleteTaskBtn" style="border-color:var(--red);color:var(--red);">Delete</button>
+      <button class="primary" id="editTaskBtn">Edit details</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generic confirm modal -->
+<div class="modal-backdrop" id="confirmModalBackdrop">
+  <div class="modal confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="confirmModalTitle" tabindex="-1">
+    <h3 id="confirmModalTitle">Are you sure?</h3>
+    <p id="confirmModalBody"></p>
+    <div class="actions">
+      <button class="ghost" id="confirmModalCancel">Cancel</button>
+      <button class="primary" id="confirmModalOk" style="background:var(--red);">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Conflict detection modal -->
+<div class="modal-backdrop" id="conflictModalBackdrop">
+  <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="conflictModalTitle" tabindex="-1">
+    <h3 id="conflictModalTitle">⚠️ Conflict detected</h3>
+    <div id="conflictBody"></div>
+    <div class="actions" style="flex-wrap:wrap;">
+      <button class="ghost" id="conflictCancel">Cancel</button>
+      <button class="ghost" id="conflictSaveAnyway">Save anyway</button>
+    </div>
+  </div>
+</div>
+
+<!-- Deadline task -->
+<div class="modal-backdrop" id="deadlineModalBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="deadlineModalTitle" tabindex="-1">
+    <h3 id="deadlineModalTitle">🎯 Deadline task</h3>
+    <div class="field">
+      <label>What do you need to get done?</label>
+      <input type="text" id="dlTitle" placeholder="e.g. Study for mathematics exam">
+    </div>
+    <div class="two-col">
+      <div class="field">
+        <label>Deadline</label>
+        <input type="text" id="dlDeadline" placeholder="YYYY-MM-DD">
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <div class="quick-row" id="dlCategoryChips">
+          <button type="button" class="quick-chip cat-chip" data-cat="Study">📚 Study</button>
+          <button type="button" class="quick-chip cat-chip" data-cat="Work">💼 Work</button>
+          <button type="button" class="quick-chip cat-chip" data-cat="Exercise">🏃 Exercise</button>
+          <button type="button" class="quick-chip cat-chip" data-cat="Other">• Other</button>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Total estimated effort</label>
+      <div class="quick-row">
+        <button type="button" class="quick-chip" data-dl-hours="1">1h</button>
+        <button type="button" class="quick-chip" data-dl-hours="2">2h</button>
+        <button type="button" class="quick-chip" data-dl-hours="3">3h</button>
+        <button type="button" class="quick-chip" data-dl-hours="6">6h</button>
+        <button type="button" class="quick-chip" data-dl-hours="10">10h</button>
+      </div>
+      <input type="number" id="dlMinutes" min="15" step="15" value="180" style="margin-top:8px;">
+      <span style="font-size:11px;color:var(--ink-dim);font-family:var(--mono);">minutes total</span>
+    </div>
+    <details class="advanced-field">
+      <summary>Optional — break it into named parts</summary>
+      <div class="field" style="margin-top:10px;">
+        <textarea id="dlSubParts" rows="4" placeholder="One part per line, e.g.&#10;Review chapter 1&#10;Practice problems&#10;Chapter 2&#10;Mock exam" style="width:100%;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:9px 10px;font-family:var(--sans);font-size:13px;resize:vertical;"></textarea>
+        <p style="font-size:11.5px;color:var(--ink-dim);margin:6px 0 0;">Leave blank and I'll just split the time evenly into unnamed sessions.</p>
+      </div>
+    </details>
+    <div class="actions">
+      <button class="ghost" id="dlCancel">Cancel</button>
+      <button class="primary" id="dlSubmit">Plan it</button>
+    </div>
+  </div>
+</div>
+
+<!-- Daily / Weekly summary -->
+<div class="modal-backdrop" id="summaryModalBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="summaryModalTitle" tabindex="-1">
+    <h3 id="summaryModalTitle">Summary</h3>
+    <div id="summaryModalBody"></div>
+    <div class="actions">
+      <button class="ghost" id="closeSummaryModal">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Search & filter -->
+<div class="modal-backdrop" id="searchModalBackdrop">
+  <div class="modal search-modal" role="dialog" aria-modal="true" aria-label="Search your schedule" tabindex="-1">
+    <div class="field">
+      <input type="text" id="searchInput" placeholder="Search events, categories, subtasks, special days…" autocomplete="off">
+    </div>
+    <div class="search-filter-row">
+      <select id="searchCatFilter">
+        <option value="all">All categories</option>
+        <option value="Work">💼 Work</option>
+        <option value="Study">📚 Study</option>
+        <option value="Exercise">🏃 Exercise</option>
+        <option value="Shopping">🛍️ Shopping</option>
+        <option value="Free time">✨ Free time</option>
+        <option value="Other">• Other</option>
+      </select>
+      <select id="searchStatusFilter">
+        <option value="all">Any status</option>
+        <option value="done">Completed</option>
+        <option value="undone">Not completed</option>
+      </select>
+      <select id="searchFlexFilter">
+        <option value="all">Fixed or flexible</option>
+        <option value="fixed">Fixed</option>
+        <option value="flexible">Flexible</option>
+      </select>
+    </div>
+    <div class="search-filter-row">
+      <input type="text" id="searchDateFrom" placeholder="From (YYYY-MM-DD)">
+      <input type="text" id="searchDateTo" placeholder="To (YYYY-MM-DD)">
+      <button class="ghost" id="searchClearFilters">Clear filters</button>
+    </div>
+    <div id="searchResults" class="search-results"></div>
+    <div class="actions">
+      <button class="ghost" id="closeSearchModal">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Assistant chat history -->
+<div class="modal-backdrop" id="historyModalBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Assistant history" tabindex="-1">
+    <h3>Assistant history</h3>
+    <p class="onboard-sub" style="margin-bottom:14px;">What you've asked this session, and what I did about it.</p>
+    <div id="historyModalBody" class="history-list"></div>
+    <div class="actions">
+      <button class="ghost" id="closeHistoryModal">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Onboarding setup wizard -->
+<div class="modal-backdrop" id="onboardBackdrop">
+  <div class="modal onboard-modal" role="dialog" aria-modal="true" aria-label="Set up your schedule" tabindex="-1">
+    <div class="onboard-dots" id="onboardDots">
+      <span class="dot active"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+
+    <!-- Step 1: category picker -->
+    <div class="onboard-step" id="obStep1">
+      <h3>Let's set up your schedule</h3>
+      <p class="onboard-sub">Pick what you'd like help scheduling — you can change any of this later.</p>
+      <div class="chip-grid" id="obCategoryChips">
+        <button class="chip" data-cat="Exercise">🏃 Sports / exercise</button>
+        <button class="chip" data-cat="Study">📚 Study</button>
+        <button class="chip" data-cat="Work">💼 Work</button>
+        <button class="chip" data-cat="Free time">✨ Hobbies</button>
+        <button class="chip" data-cat="Shopping">🛍️ Shopping / errands</button>
+      </div>
+      <div class="onboard-actions">
+        <button class="ghost" id="obSkip1">Skip for now</button>
+        <button class="primary" id="obNext1">Next</button>
+      </div>
+    </div>
+
+    <!-- Step 2: time-of-day per category -->
+    <div class="onboard-step" id="obStep2" style="display:none;">
+      <h3>When works best?</h3>
+      <p class="onboard-sub">Pick a rough time of day for each — we'll fit it around whatever's already on your calendar.</p>
+      <div id="obTimeQuestions" class="onboard-time-questions"></div>
+      <div class="onboard-actions">
+        <button class="ghost" id="obBack2">Back</button>
+        <button class="primary" id="obNext2">Next</button>
+      </div>
+    </div>
+
+    <!-- Step 3: review & apply -->
+    <div class="onboard-step" id="obStep3" style="display:none;">
+      <h3>Here's what we'll add</h3>
+      <p class="onboard-sub">Uncheck anything you don't want — the rest gets added to your schedule.</p>
+      <div id="obSuggestions" class="onboard-suggestions"></div>
+      <div class="onboard-actions">
+        <button class="ghost" id="obBack3">Back</button>
+        <button class="primary" id="obApply">Add to my schedule</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- File import preview -->
+<div class="modal-backdrop" id="importModalBackdrop">
+  <div class="modal onboard-modal" role="dialog" aria-modal="true" aria-labelledby="importModalTitle" tabindex="-1">
+    <h3 id="importModalTitle" style="margin:0 0 6px;font-size:17px;font-family:var(--display);text-align:center;">Import schedule</h3>
+    <p class="onboard-sub" id="importModalSub">Found a weekly schedule — review what to add.</p>
+    <div id="importSuggestions" class="onboard-suggestions"></div>
+    <div class="onboard-actions">
+      <button class="ghost" id="importCancel">Cancel</button>
+      <button class="primary" id="importApply">Add selected to my schedule</button>
+    </div>
+  </div>
+</div>
+
+<div class="proposal-wrap" id="proposalWrap"></div>
+
+<div class="command-bar">
+  <div class="command-inner">
+    <button class="attach-btn" id="attachBtn" title="Attach a file (spreadsheet, image, PDF)" aria-label="Attach a file">+</button>
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv,.pdf,image/*" style="display:none;">
+    <span class="prompt-mark">&gt;</span>
+    <input type="text" id="commandInput" placeholder='e.g. "run Sunday morning for 45 minutes"'>
+    <button class="history-btn" id="historyOpenBtn" title="Assistant history" aria-label="View assistant chat history">🕓</button>
+    <button id="commandSend">↵</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span id="toastMsg"></span>
+  <button id="toastUndoBtn" class="toast-undo-btn" style="display:none;">Undo</button>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
